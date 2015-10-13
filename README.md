@@ -1,7 +1,6 @@
-# docker-stash: A Docker image for Stash.
+# docker-bitbucket: A Docker image for Bitbucket Server.
 
-[![Docker Repository on Quay.io](https://quay.io/repository/ahaasler/stash/status "Docker Repository on Quay.io")](https://quay.io/repository/ahaasler/stash)
-[![Release](https://img.shields.io/github/release/ahaasler/docker-stash.svg?style=flat)](https://github.com/ahaasler/docker-stash/releases/latest)
+[![Release](https://img.shields.io/github/release/jondelmil/docker-bitbucket.svg?style=flat)](https://github.com/jondelmil/docker-bitbucket/releases/latest)
 
 ## Features
 
@@ -12,12 +11,12 @@
 ## Usage
 
 ```bash
-docker run -d -p 7990:7990 -p 7999:7999 ahaasler/stash
+docker run -d -p 7990:7990 -p 7999:7999 jondelmil/bitbucket
 ```
 
 ### Parameters
 
-You can use this parameters to configure your stash instance:
+You can use this parameters to configure your bitbucket instance:
 
 * **-s:** Enables the connector security and sets `https` as connector scheme.
 * **-n &lt;proxyName&gt;:** Sets the connector proxy name.
@@ -27,14 +26,14 @@ You can use this parameters to configure your stash instance:
 This parameters should be given to the entrypoint (passing them after the image):
 
 ```bash
-docker run -d -p 7990:7990 -p 7999:7999 ahaasler/stash <parameters>
+docker run -d -p 7990:7990 -p 7999:7999 jondelmil/bitbucket <parameters>
 ```
 
-> If you want to execute another command instead of launching stash you should overwrite the entrypoint with `--entrypoint <command>` (docker run parameter).
+> If you want to execute another command instead of launching bitbucket you should overwrite the entrypoint with `--entrypoint <command>` (docker run parameter).
 
 ### Nginx as reverse proxy
 
-Lets say you have the following *nginx* configuration for stash:
+Lets say you have the following *nginx* configuration for bitbucket:
 
 ```
 server {
@@ -49,7 +48,7 @@ server {
 	ssl                             on;
 	ssl_certificate                 /path/to/certificate.crt;
 	ssl_certificate_key             /path/to/key.key;
-	location /stash {
+	location /bitbucket {
 		proxy_set_header X-Forwarded-Host $host;
 		proxy_set_header X-Forwarded-Server $host;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -61,80 +60,79 @@ server {
 
 > This is only an example, please secure you *nginx* better.
 
-For that configuration you should run your stash container with:
+For that configuration you should run your bitbucket container with:
 
 ```bash
-docker run -d -p 7990:7990 -p 7999:7999 ahaasler/stash -s -n example.com -p 443 -c stash
+docker run -d -p 7990:7990 -p 7999:7999 jondelmil/bitbucket -s -n example.com -p 443 -c bitbucket
 ```
 
 ### Persistent data
 
-The stash home is set to `/data/stash`. If you want to persist your data you should use a data volume for `/data/stash`.
+The bitbucket home is set to `/data/bitbucket`. If you want to persist your data you should use a data volume for `/data/bitbucket`.
 
 #### Binding a host directory
 
 ```bash
-docker run -d -p 7990:7990 -p 7999:7999 -v /home/user/stash-data:/data/stash ahaasler/stash
+docker run -d -p 7990:7990 -p 7999:7999 -v /home/user/bitbucket-data:/data/bitbucket jondelmil/bitbucket
 ```
 
-Make sure that the stash user (with id 782) has read/write/execute permissions.
+Make sure that the bitbucket user (with id 782) has read/write/execute permissions.
 
 If security is important follow the Atlassian recommendation:
 
-> Ensure that only the user running Stash can access the Stash home directory, and that this user has read, write and execute permissions, by setting file system permissions appropriately for your operating system.
+> Ensure that only the user running bitbucket can access the bitbucket home directory, and that this user has read, write and execute permissions, by setting file system permissions appropriately for your operating system.
 
 #### Using a data-only container
 
 1. Create the data-only container and set proper permissions:
 
-	* **Lazy way (preferred)** - Using [docker-stash-data](https://github.com/ahaasler/docker-stash-data "A data-only container for docker-stash"):
+	* **Lazy way (preferred)** - Using [docker-bitbucket-data](https://github.com/jondelmil/docker-bitbucket-data "A data-only container for docker-bitbucket"):
 
 		```bash
-docker run --name stash-data ahaasler/stash-data
+docker run --name bitbucket-data jondelmil/bitbucket-data
 		```
 
-	* *I-wan't-to-know-what-I'm-doing* way:
+	* *I-want-to-know-what-I'm-doing* way:
 
 		```bash
-docker run --name stash-data -v /data/stash busybox true
-docker run --rm -it --volumes-from stash-data debian bash
+docker run --name bitbucket-data -v /data/bitbucket busybox true
+docker run --rm -it --volumes-from bitbucket-data debian bash
 		```
 
 		The last command will open a *debian* container. Execute this inside that container:
 
 		```bash
-chown 782:root /data/stash; chmod 770 /data/stash; exit;
+chown 782:root /data/bitbucket; chmod 770 /data/bitbucket; exit;
 		```
 
-2. Use it in the stash container:
+2. Use it in the bitbucket container:
 
 	```bash
-docker run --name stash --volumes-from stash-data -d -p 7990:7990 -p 7999:7999 ahaasler/stash
+docker run --name bitbucket --volumes-from bitbucket-data -d -p 7990:7990 -p 7999:7999 jondelmil/bitbucket
 	```
 
 ### PostgreSQL external database
 
-A great way to connect your Stash instance with a PostgreSQL database is
-using the [docker-stash-postgres](https://github.com/ahaasler/docker-stash-postgres "A PostgreSQL container for docker-stash")
+A great way to connect your bitbucket instance with a PostgreSQL database is
+using the [docker-bitbucket-postgres](https://github.com/jondelmil/docker-bitbucket-postgres "A PostgreSQL container for docker-bitbucket")
 image.
 
 1. Create and name the database container:
 
 	```bash
-docker run --name stash-postgres -d ahaasler/stash-postgres
+docker run --name bitbucket-postgres -d jondelmil/bitbucket-postgres
 	```
 
-2. Use it in the Stash container:
+2. Use it in the bitbucket container:
 
 	```bash
-docker run --name stash --link stash-postgres:stash-postgres -d -p 7990:7990 -p 7999:7999 ahaasler/stash
+docker run --name bitbucket --link bitbucket-postgres:bitbucket-postgres -d -p 7990:7990 -p 7999:7999 jondelmil/bitbucket
 	```
 
-3. Connect your Stash instance following the Atlassian documentation:
-[Connecting Stash to PostgreSQL](https://confluence.atlassian.com/display/STASH/Connecting+Stash+to+PostgreSQL#ConnectingStashtoPostgreSQL-ConnectStashtothePostgreSQLdatabase "Connecting Stash to PostgreSQL").
+3. Connect your bitbucket instance following the Atlassian documentation:
+[Connecting Bitbucket Server to PostgreSQL](https://confluence.atlassian.com/bitbucketserver/connecting-bitbucket-server-to-postgresql-776640389.html "Connecting Bitbucket Server to PostgreSQL").
 
->  See [docker-stash-postgres](https://github.com/ahaasler/docker-stash-postgres "A PostgreSQL container for docker-stash")
-for more information an configuration options.
+>  See [docker-bitbucket-postgres](https://github.com/jondelmil/docker-bitbucket-postgres "A PostgreSQL container for docker-bitbucket") for more information and configuration options.
 
 ## Thanks
 
